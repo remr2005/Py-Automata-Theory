@@ -1,0 +1,1 @@
+A simple library for working with Mealy and Moore machines.
