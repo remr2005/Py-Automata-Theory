@@ -1,3 +1,19 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "jflap",
+    "automatas",
+    "minimization",
+    "transformations"
+]
+
+[project]
+name = "PyAutomataTheory"
+version = "0.0.1" 
+description = "A simple library for working with Mealy and Moore machines."
+authors = [
+  { name = "remr2005", email = "morpeh2005ka@gmail.com" }
+]
