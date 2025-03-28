@@ -1,7 +1,7 @@
 """Modules"""
 from copy import deepcopy
 from collections import defaultdict
-from automatas import MealyAutomata, MoorAutomata
+from PyAutomataTheory.automatas import MealyAutomata, MoorAutomata
 
 
 def from_mealy_to_moor(automata: MealyAutomata) -> MoorAutomata:

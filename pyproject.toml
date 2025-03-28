@@ -4,15 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = [
-    "jflap",
-    "automatas",
-    "minimization",
-    "transformations"
+    "PyAutomataTheory",
+    "PyAutomataTheory.jflap",
+    "PyAutomataTheory.automatas",
+    "PyAutomataTheory.minimization",
+    "PyAutomataTheory.transformations"
+    "PyAutomataTheory.maximization"
 ]
 
 [project]
 name = "PyAutomataTheory"
-version = "0.0.1" 
+version = "0.0.2"
 description = "A simple library for working with Mealy and Moore machines."
 authors = [
   { name = "remr2005", email = "morpeh2005ka@gmail.com" }

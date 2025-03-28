@@ -1,7 +1,7 @@
 """Convert Mealy automaton to JFLAP file"""
 import xml.etree.ElementTree as ET
 from copy import deepcopy
-from automatas import MealyAutomata
+from PyAutomataTheory.automatas import MealyAutomata
 
 def convert_mealy_to_jflap(automata: MealyAutomata, filename="mealy_machine.jff") -> None:
     """Convert Mealy automaton to JFLAP file"""

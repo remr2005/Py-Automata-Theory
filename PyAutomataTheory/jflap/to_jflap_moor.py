@@ -1,7 +1,7 @@
 """Modules"""
 import xml.etree.ElementTree as ET
 from copy import deepcopy
-from automatas import MoorAutomata
+from PyAutomataTheory.automatas import MoorAutomata
 
 def convert_moor_to_jflap(automata: MoorAutomata, filename: str) -> None:
     """Convert Moor automata to jflap file"""

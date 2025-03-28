@@ -1,7 +1,7 @@
 """Code for Pi-minimization algorithm"""
 from collections import defaultdict
 from copy import deepcopy
-from automatas import MealyAutomata
+from PyAutomataTheory.automatas import MealyAutomata
 
 def pi_minimization(automata_: MealyAutomata) -> MealyAutomata:
     """Pi-minimization algorithm for Mealy automaton"""

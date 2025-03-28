@@ -1,5 +1,5 @@
 """Import base modules"""
-from automatas import BaseAutomata
+from PyAutomataTheory.automatas import BaseAutomata
 
 class MealyAutomata(BaseAutomata):
     """Realisation of Mealy Automata"""
