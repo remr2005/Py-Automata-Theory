@@ -34,7 +34,7 @@ def anger_pohl(automata:MealyAutomata) -> None:
         for s1,a1 in aut.table.items():
             if s0==s1:
                 continue
-            
+            print(s0,s1)
             c, r = calculate(s0, s1, aut)
             binMatrix[c] = r
             if r:
@@ -50,7 +50,8 @@ def get_way(a0_, a1_):
     print(a0_, a1_)
     a0 = deepcopy(a0_)
     a1 = deepcopy(a1_)
-    for inp, res in a0:
+    for inp, res in a0.items():
+        print(1)
         if res[0] != '-' and a1[inp][0]!='-':
             return tuple([min(res[0],a1[inp][0]), max(res[0],a1[inp][0])])
 
@@ -72,4 +73,10 @@ def calculate(s0_, s1_, aut_:MealyAutomata):
                 break
     if Yav_Soot:
         return tuple([min(s0, s1), max(s0, s1)]), 1
-    return tuple([min(s0, s1), max(s0, s1)]),calculate(*get_way(a0, a1),aut)[1]
+    
+    print(a0)
+
+    coord = get_way(a0, a1)
+    print(f"SAD {coord} SAD")
+
+    return tuple([min(s0, s1), max(s0, s1)]),calculate(*coord,aut)[1]
