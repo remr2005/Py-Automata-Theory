@@ -39,10 +39,12 @@ def get_way(a0_, a1_):
     # print(a0_, a1_)
     a0 = deepcopy(a0_)
     a1 = deepcopy(a1_)
+    ans = []
     for inp, res in a0.items():
         # print(1)
         if res[0] != '-' and a1[inp][0]!='-' and  res[0]!=a1[inp][0]:
-            return tuple([min(res[0],a1[inp][0]), max(res[0],a1[inp][0])])
+            ans.append(tuple([min(res[0],a1[inp][0]), max(res[0],a1[inp][0])]))
+    return ans
 
 
 @lru_cache()
@@ -73,5 +75,8 @@ def calculate(s0_, s1_, aut_:MealyAutomata):
     coord = get_way(a0, a1)
 
     print(tuple([min(s0, s1), max(s0, s1)]),"->",coord)
-
-    return tuple([min(s0, s1), max(s0, s1)]),calculate(*coord,aut)[1]
+    ans = []
+    # return tuple([min(s0, s1), max(s0, s1)]),calculate(*coord,aut)[1]
+    for c in coord:
+        ans.append(calculate(*c,aut)[1])
+    return tuple([min(s0, s1), max(s0, s1)]), int(all(ans))
