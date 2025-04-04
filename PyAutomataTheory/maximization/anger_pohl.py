@@ -12,7 +12,8 @@ def anger_pohl(automata:MealyAutomata) -> None:
     aut = deepcopy(automata)
     blocks_row = defaultdict(set)
     blocks_table = defaultdict(set)
-    binMatrix = {}    
+    binMatrix = {}
+    # Сначала построим бинарную матрицу
     for s0, a0 in aut.table.items():
         for s1,a1 in aut.table.items():
             if s0==s1:
@@ -31,10 +32,17 @@ def anger_pohl(automata:MealyAutomata) -> None:
                 blocks_row[min_s].add(max_s)
                 blocks_table[max_s].add(min_s)
     calculate.cache_clear()
-    # print(binMatrix)
-    print(blocks_row)
-    print(blocks_table)
-    print(is_block(sorted(blocks_row["1"]), binMatrix))
+    # Теперь найдем максимальные покрытия
+    res = []
+    for i,a in blocks_row.items():
+        for j in is_block(sorted(a), binMatrix):
+            res +=[[i] + list(j)]
+    final_blocks = []
+    for cb in res:
+        if not any(set(cb).issubset(set(other)) and cb != other for other in res):
+            final_blocks.append(cb)
+    print(final_blocks)
+
     
 
 def get_way(a0_, a1_):
@@ -88,11 +96,10 @@ def is_block(block: list, binMatrix: dict[tuple, int]):
     incor = [i for i in combinations(block, 2) if binMatrix.get(i, 0) != 1]
     
     if not incor:
-        print(block)
+        # print(block)
         return [block]  # Возвращаем список, содержащий один корректный блок
 
     max_blocks = set()
-    max_size = 0
 
     for i in block:
         temp = deepcopy(block)  # Копируем список
@@ -100,7 +107,7 @@ def is_block(block: list, binMatrix: dict[tuple, int]):
         new_blocks = is_block(temp, binMatrix)  # Рекурсивный вызов
 
         for nb in new_blocks:
-            if len(nb) > 1:
+            if len(nb) > 0:
                 max_blocks.add(tuple(nb))  # Добавляем блок, если он такой же по размеру
 
     final_blocks = []
