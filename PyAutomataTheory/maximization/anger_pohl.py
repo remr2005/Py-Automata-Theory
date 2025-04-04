@@ -5,8 +5,10 @@ from functools import lru_cache
 from copy import deepcopy
 from PyAutomataTheory.automatas import MealyAutomata
 from .vis import visualization
+from .save_docx import save_to_docx
 
 way = set()
+text = ""
 
 def anger_pohl(automata:MealyAutomata, num:str="") -> None:
     """Anger-Pohl algorithm"""
@@ -14,14 +16,16 @@ def anger_pohl(automata:MealyAutomata, num:str="") -> None:
     blocks_row = defaultdict(set)
     blocks_table = defaultdict(set)
     binMatrix = {}
+    global text
     # Сначала построим бинарную матрицу
-    for s0, _ in aut.table.items():
-        for s1,_ in aut.table.items():
-            if s0==s1:
-                continue
-            min_s = min(s0,s1)
-            max_s = max(s0,s1)
+    states = list(aut.table.keys())
+    for i in range(len(states)):
+        s0 = states[i]
+        for j in range(i + 1, len(states)):  # начинаем с i+1
+            s1 = states[j]
 
+            min_s = min(s0, s1)
+            max_s = max(s0, s1)
 
             c, r = calculate(min_s, max_s, aut)
             global way
@@ -37,6 +41,7 @@ def anger_pohl(automata:MealyAutomata, num:str="") -> None:
         for j in is_block(sorted(a), binMatrix):
             res +=[[i] + list(j)]
     final_blocks = []
+    # Удалим все подмножества
     for cb in res:
         if not any(set(cb).issubset(set(other)) and cb != other for other in res):
             final_blocks.append(cb)
@@ -47,8 +52,46 @@ def anger_pohl(automata:MealyAutomata, num:str="") -> None:
             final_blocks.append([i0])
         if all([not (i1 in j) for j in final_blocks]):
             final_blocks.append([i1])
-    print(binMatrix)
-    print(final_blocks)
+    # print(binMatrix)
+    # print(final_blocks)
+    text+=f"Получим бинарную матрицу и итоговые блоки\n"
+    # Проверка на замкнутость
+    # Первоначальное разбитие
+    old_states_new = {}
+    new_states_old = {}
+    states = []
+    temp_tabel = defaultdict(dict)
+    tabel_to_print = []
+    tabel = defaultdict(dict)
+    # Составим таблицу замкнутости
+    for ind, block in enumerate(final_blocks):
+        states.append(f"G{ind+1}")
+        old_states_new[tuple(block)] = states[-1]
+        new_states_old[states[-1]] = tuple(block)
+        temp_trans = []
+        temp_reac = []
+        for a in aut.alphabet:
+            temp_trans.append(set(tuple(aut.table[i][a][0] for i in block if aut.table[i][a][0]!="-")))
+            temp_reac.append(set(tuple(aut.table[i][a][1] for i in block if aut.table[i][a][1]!="-")))
+            temp_tabel[tuple(block)][a] = [temp_trans[-1], temp_reac[-1]] 
+        tabel_to_print.append([f"G{ind+1}", block, *temp_trans, *temp_reac])
+        # print([f"G{ind+1}", block, *temp_trans, *temp_reac])
+    # Составим новый автомат
+    for s, a in temp_tabel.items():
+        for inp, it in a.items():
+            for inp1, it1  in old_states_new.items():
+                # print(inp1, it, set(inp1).issubset(it[0]))
+                if it[0].issubset(set(inp1)):
+                    tabel[old_states_new[s]][inp] = [it1, *it[1]]
+    print(tabel_to_print)
+    save_to_docx(tabel_to_print, tabel, f"otch{num}.docx", text)
+    text = ""
+    #  print(text)
+    # print(tabel_to_print)
+    # print(tabel)
+        
+    # Таблица с новыми состояниями
+    # new_aut = MealyAutomata(states, states[0], aut.alphabet, tabel)
 
 def get_way(a0_, a1_):
     """Возвращает найденные переходы"""
@@ -70,38 +113,44 @@ def calculate(s0_, s1_, aut_:MealyAutomata):
     a0 = aut.table[s0]
     a1 = aut.table[s1]
     Yav_Soot = True
+    global text
+    text += f"Начинаем с {s0, s1} "
     # Нахождение явного/неявного соответствия
     for inp in aut.alphabet:
         if a0[inp][1] != a1[inp][1] and a0[inp][1] != "-" and a1[inp][1] != "-":
+            text+=f", которые явно не совместимы\n"
             return tuple([min(s0, s1), max(s0, s1)]), 0
         for i in range(2):
             if not (a0[inp][i] == a1[inp][i] or a0[inp][i] == "-" or a1[inp][i] == "-"):
                 Yav_Soot = False
                 break
     if Yav_Soot:
+        text+=f", которые явно совместимы\n"
         return tuple([min(s0, s1), max(s0, s1)]), 1
     
     # Проверяем, не вернулись ли мы туда, где мы уже были
     global way
     if tuple([min(s0, s1), max(s0, s1)]) in way:
+        text+=f", которые явно совместимы, так как встречались до этого\n"
         return tuple([min(s0, s1), max(s0, s1)]), 1
     else:
         way.add(tuple([min(s0, s1), max(s0, s1)]))
 
     coord = get_way(a0, a1)
-
+    text += f"Переход из {s0, s1} -> {coord} \n"
     # проходимся по всем возможным переходам
     ans = []
     for c in coord:
         ans.append(calculate(*c,aut)[1])
+    text+=f"В итоге {s0, s1} равен {int(all(ans))}\n"
     return tuple([min(s0, s1), max(s0, s1)]), int(all(ans))
 
 
 def is_block(block: list, binMatrix: dict[tuple, int]):
     """Находит блоки, из данного"""
     # Находим несовместимые состояния
+    global text
     incor = [i for i in combinations(block, 2) if binMatrix.get(i, 0) != 1]
-    
     # Если таких состояний нет, то стоп
     if not incor:
         return [block]
