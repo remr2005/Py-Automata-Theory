@@ -4,6 +4,7 @@ from collections import defaultdict
 from functools import lru_cache
 from copy import deepcopy
 from PyAutomataTheory.automatas import MealyAutomata
+from .vis import visualization
 
 way = set()
 
@@ -26,8 +27,6 @@ def anger_pohl(automata:MealyAutomata) -> None:
             global way
             way = set()
             binMatrix[c] = r
-            if r == 0:
-                print(c)
             if r:
                 blocks_row[min_s].add(max_s)
                 blocks_table[max_s].add(min_s)
@@ -41,7 +40,7 @@ def anger_pohl(automata:MealyAutomata) -> None:
     for cb in res:
         if not any(set(cb).issubset(set(other)) and cb != other for other in res):
             final_blocks.append(cb)
-    print(final_blocks)
+    visualization(final_blocks, binMatrix, "28")
 
     
 

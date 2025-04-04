@@ -602,3 +602,6 @@ MigrationBackup/
 # End of https://www.toptal.com/developers/gitignore/api/venv,pythonvanilla,python,git,vs,visualstudiocode
 .venv/
 main.py
+variants.py
+*.ods
+*.png
