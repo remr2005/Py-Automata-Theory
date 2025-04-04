@@ -1,4 +1,5 @@
 """Modules"""
+from itertools import combinations
 from collections import defaultdict
 from functools import lru_cache
 from copy import deepcopy
@@ -30,9 +31,10 @@ def anger_pohl(automata:MealyAutomata) -> None:
                 blocks_row[min_s].add(max_s)
                 blocks_table[max_s].add(min_s)
     calculate.cache_clear()
-    print(binMatrix)
-    # print(blocks_row)
-    # print(blocks_table)
+    # print(binMatrix)
+    print(blocks_row)
+    print(blocks_table)
+    print(is_block(sorted(blocks_row["1"]), binMatrix))
     
 
 def get_way(a0_, a1_):
@@ -74,9 +76,36 @@ def calculate(s0_, s1_, aut_:MealyAutomata):
 
     coord = get_way(a0, a1)
 
-    print(tuple([min(s0, s1), max(s0, s1)]),"->",coord)
+    # print(tuple([min(s0, s1), max(s0, s1)]),"->",coord)
     ans = []
     # return tuple([min(s0, s1), max(s0, s1)]),calculate(*coord,aut)[1]
     for c in coord:
         ans.append(calculate(*c,aut)[1])
     return tuple([min(s0, s1), max(s0, s1)]), int(all(ans))
+
+
+def is_block(block: list, binMatrix: dict[tuple, int]):
+    incor = [i for i in combinations(block, 2) if binMatrix.get(i, 0) != 1]
+    
+    if not incor:
+        print(block)
+        return [block]  # Возвращаем список, содержащий один корректный блок
+
+    max_blocks = set()
+    max_size = 0
+
+    for i in block:
+        temp = deepcopy(block)  # Копируем список
+        temp.remove(i)  # Удаляем элемент
+        new_blocks = is_block(temp, binMatrix)  # Рекурсивный вызов
+
+        for nb in new_blocks:
+            if len(nb) > 1:
+                max_blocks.add(tuple(nb))  # Добавляем блок, если он такой же по размеру
+
+    final_blocks = []
+    for cb in max_blocks:
+        if not any(set(cb).issubset(set(other)) and cb != other for other in max_blocks):
+            final_blocks.append(cb)
+
+    return final_blocks
