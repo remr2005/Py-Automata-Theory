@@ -3,53 +3,55 @@ import numpy as np
 import pandas as pd
 
 def visualization(blocks, bin_matrix, strx=""):
-    import pandas as pd
-    # Уникальные вершины
-    vertices = sorted(set(k for b in blocks for k in b))
+    # 1. Собираем все уникальные вершины из bin_matrix
+    vertices = sorted(set([key[0] for key in bin_matrix] + [key[1] for key in bin_matrix]))
     idx_map = {v: i for i, v in enumerate(vertices)}
 
-    # Создаем треугольную матрицу (верхнюю)
+    # 2. Создаем пустую матрицу
     matrix = np.full((len(vertices), len(vertices)), '', dtype=object)
-    for (i, j), val in bin_matrix.items():
-        if i in idx_map and j in idx_map:
-            row, col = idx_map[i], idx_map[j]
-            if row < col:
-                matrix[row][col] = str(val)
 
-    # Меняем строки и столбцы местами (строки справа)
+    # 3. Заполняем только верхнюю треугольную часть
+    for i in range(len(vertices)):
+        for j in range(i + 1, len(vertices)):
+            vi, vj = vertices[i], vertices[j]
+            value = bin_matrix.get((vi, vj), bin_matrix.get((vj, vi), ''))
+            matrix[i][j] = str(value)
+
+    # 4. Формируем DataFrame
     df_upper = pd.DataFrame(matrix, index=vertices, columns=vertices)
 
-    # Визуализация блоков и треугольной таблицы
-    fig, axs = plt.subplots(2, 1, figsize=(10, 10))
+    # 5. Визуализация
+    fig, axs = plt.subplots(2, 1, figsize=(12, 12))
 
-    # Блоки
+    # --- Блоки ---
     text = '\n'.join(['{' + ', '.join(b) + '}' for b in blocks])
     axs[0].axis('off')
     axs[0].text(0.01, 0.99, f'Блоки:\n{text}', va='top', ha='left', fontsize=14, fontfamily='monospace')
 
-    # Таблица (треугольная)
+    # --- Таблица ---
     axs[1].axis('off')
-    axs[1].set_title("Бинарная матрица", fontsize=14)
-    table = axs[1].table(cellText=df_upper.values, rowLabels=['']*len(vertices),
-                        colLabels=df_upper.columns, loc='center', cellLoc='center',
-                        rowColours=["#f2f2f2"]*len(vertices), colColours=["#f2f2f2"]*len(vertices))
+    axs[1].set_title("Треугольная матрица", fontsize=14)
 
-    # Поворачиваем подписи строк вправо
-    for i, key in enumerate(table.get_celld()):
-        cell = table.get_celld()[key]
-        if key[1] == -1:  # колонки
-            cell.set_text_props(rotation=90)
-        if key[0] == len(vertices):  # названия строк (справа)
-            cell.get_text().set_horizontalalignment('left')
+    table = axs[1].table(
+        cellText=df_upper.values,
+        rowLabels=vertices,
+        colLabels=vertices,
+        loc='center',
+        cellLoc='center',
+        rowColours=["#f2f2f2"] * len(vertices),
+        colColours=["#f2f2f2"] * len(vertices),
+    )
+
+    # Поворот заголовков столбцов
+    for (row, col), cell in table.get_celld().items():
+        if row == 0 and col > -1:
+            cell.set_text_props(rotation=90, ha='center', va='bottom')
 
     plt.tight_layout()
-    output_path_triangle = f"triangular_blocks_and_matrix{strx}.png"
-    plt.savefig(output_path_triangle)
-    import pandas as pd
 
-    # Создаем DataFrame для треугольной матрицы смежности
-    df_upper_ods = pd.DataFrame(df_upper.values, columns=vertices, index=vertices)
-
-    # Сохраняем в формат ODS (OpenDocument Spreadsheet)
+    # --- Сохранение ---
+    png_path = f"triangular_blocks_and_matrix{strx}.png"
     ods_path = f"triangular_blocks_and_matrix{strx}.ods"
-    df_upper_ods.to_excel(ods_path, engine="odf")
+
+    plt.savefig(png_path)
+    df_upper.to_excel(ods_path, engine="odf")

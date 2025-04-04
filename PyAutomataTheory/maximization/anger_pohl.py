@@ -8,15 +8,15 @@ from .vis import visualization
 
 way = set()
 
-def anger_pohl(automata:MealyAutomata) -> None:
+def anger_pohl(automata:MealyAutomata, num:str="") -> None:
     """Anger-Pohl algorithm"""
     aut = deepcopy(automata)
     blocks_row = defaultdict(set)
     blocks_table = defaultdict(set)
     binMatrix = {}
     # Сначала построим бинарную матрицу
-    for s0, a0 in aut.table.items():
-        for s1,a1 in aut.table.items():
+    for s0, _ in aut.table.items():
+        for s1,_ in aut.table.items():
             if s0==s1:
                 continue
             min_s = min(s0,s1)
@@ -40,9 +40,15 @@ def anger_pohl(automata:MealyAutomata) -> None:
     for cb in res:
         if not any(set(cb).issubset(set(other)) and cb != other for other in res):
             final_blocks.append(cb)
-    visualization(final_blocks, binMatrix, "28")
-
     
+    # НУЖЕН АПРУВ СТРАТКИ ОТ ПАРМЕНОВА
+    for i0,i1 in binMatrix:
+        if all([not (i0 in j) for j in final_blocks]):
+            final_blocks.append([i0])
+        if all([not (i1 in j) for j in final_blocks]):
+            final_blocks.append([i1])
+    print(binMatrix)
+    print(final_blocks)
 
 def get_way(a0_, a1_):
     """Возвращает найденные переходы"""
@@ -108,8 +114,7 @@ def is_block(block: list, binMatrix: dict[tuple, int]):
         new_blocks = is_block(temp, binMatrix)
 
         for nb in new_blocks:
-            if len(nb) > 0:
-                max_blocks.add(tuple(nb))
+            max_blocks.add(tuple(nb))
     final_blocks = []
 
     # Убираем все подмножества таких множеств
