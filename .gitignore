@@ -606,3 +606,5 @@ variants.py
 *.ods
 *.png
 docs
+proba
+h.py
