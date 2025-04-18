@@ -4,8 +4,6 @@ from collections import defaultdict
 from functools import lru_cache
 from copy import deepcopy
 from PyAutomataTheory.automatas import MealyAutomata
-from .vis import visualization
-from .save_docx import save_to_docx
 
 
 way = set()
@@ -92,6 +90,7 @@ def anger_pohl(automata: MealyAutomata, num: str = "") -> tuple[MealyAutomata,li
                     tabel[old_states_new[s]][inp] = [it1, *it[1]]
 
     text = ""
+    print(minimize_cover(final_blocks, automata))
     return MealyAutomata(states, states[0],automata.alphabet, tabel), final_blocks
 
 
@@ -101,6 +100,7 @@ def minimize_cover(max_cover, automata):
     candidate_blocks = [set(block) for block in max_cover]
     for r in range(1, len(candidate_blocks) + 1):
         for comb in combinations(candidate_blocks, r):
+            # Если в нов
             if set().union(*comb) == S:
                 if is_zamk(list(comb), automata):
                     return list(comb)
@@ -112,11 +112,9 @@ def is_zamk(blocks, aut) -> bool:
     for ind, block in enumerate(blocks):
         for a in aut.alphabet:
             transitions = set(aut.table[i][a][0] for i in block if aut.table[i][a][0] != "-")
-            found = False
-            for other_block in blocks:
-                if transitions.issubset(other_block):
-                    found = True
-                    break
+            if not transitions:  # Если нет переходов по этому символу
+                continue 
+            found = any(transitions.issubset(other_block) for other_block in blocks)
             if not found:
                 return False
     return True
@@ -126,11 +124,9 @@ def get_way(a0_, a1_):
     """Возвращает пары переходов, где состояния различаются"""
     a0 = deepcopy(a0_)
     a1 = deepcopy(a1_)
-    ans = []
-    for inp, res in a0.items():
-        if res[0] != '-' and a1[inp][0] != '-' and res[0] != a1[inp][0]:
-            ans.append((min(res[0], a1[inp][0]), max(res[0], a1[inp][0])))
-    return ans
+    return [(min(res[0], a1[inp][0]), max(res[0], a1[inp][0])) 
+            for inp, res in a0.items() 
+            if res[0] != '-' and a1[inp][0] != '-' and res[0] != a1[inp][0]]
 
 
 @lru_cache()
@@ -161,17 +157,17 @@ def calculate(s0_, s1_, aut_: MealyAutomata):
 
     # Проверка на повторное появление пары
     global way
-    if (min(s0, s1), max(s0, s1)) in way:
+    pair = (min(s0, s1), max(s0, s1))
+    if pair in way:
         text += f", которые явно совместимы, так как встречались до этого\n"
-        return (min(s0, s1), max(s0, s1)), 1
-    else:
-        way.add((min(s0, s1), max(s0, s1)))
-
+        return pair, 1
+    
+    way.add(pair)
     coord = get_way(a0, a1)
     text += f"Переход из {s0, s1} -> {coord} \n"
-    ans = [calculate(*c, aut)[1] for c in coord]
-    text += f"В итоге {s0, s1} равен {int(all(ans))}\n"
-    return (min(s0, s1), max(s0, s1)), int(all(ans))
+    ans = all(calculate(*c, aut)[1] for c in coord)
+    text += f"В итоге {s0, s1} равен {int(ans)}\n"
+    return pair, int(ans)
 
 
 def is_block(block: list, binMatrix: dict[tuple, int]):
