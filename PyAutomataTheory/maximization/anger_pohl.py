@@ -12,13 +12,14 @@ way = set()
 text = ""
 
 
-def anger_pohl(automata: MealyAutomata, num: str = "") -> None:
+def anger_pohl(automata: MealyAutomata, num: str = "") -> tuple[MealyAutomata,list]:
     """Anger-Pohl algorithm — минимизация автомата Мили"""
     aut = deepcopy(automata)
     blocks_row = defaultdict(set)
     blocks_table = defaultdict(set)
     binMatrix = {}
     global text
+    # print(automata.table)
     # Строим бинарную матрицу совместимости пар состояний
     states = list(aut.table.keys())
     for i in range(len(states)):
@@ -90,13 +91,35 @@ def anger_pohl(automata: MealyAutomata, num: str = "") -> None:
                 if it[0].issubset(set(inp1)):
                     tabel[old_states_new[s]][inp] = [it1, *it[1]]
 
-    # Сохраняем в .docx
-    save_to_docx(tabel_to_print, tabel, f"otch{num}.docx", text)
     text = ""
+    return MealyAutomata(states, states[0],automata.alphabet, tabel), final_blocks
 
-    # Отладочный вывод
-    print(binMatrix)
-    print(aut.table)
+
+def minimize_cover(max_cover, automata):
+    """Находит минимальное покрытие"""
+    S = set(automata.states)
+    candidate_blocks = [set(block) for block in max_cover]
+    for r in range(1, len(candidate_blocks) + 1):
+        for comb in combinations(candidate_blocks, r):
+            if set().union(*comb) == S:
+                if is_zamk(list(comb), automata):
+                    return list(comb)
+    return max_cover
+
+
+def is_zamk(blocks, aut) -> bool:
+    """проверяет покрытие на замкнутость"""
+    for ind, block in enumerate(blocks):
+        for a in aut.alphabet:
+            transitions = set(aut.table[i][a][0] for i in block if aut.table[i][a][0] != "-")
+            found = False
+            for other_block in blocks:
+                if transitions.issubset(other_block):
+                    found = True
+                    break
+            if not found:
+                return False
+    return True
 
 
 def get_way(a0_, a1_):
